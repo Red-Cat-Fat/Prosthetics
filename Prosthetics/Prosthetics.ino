@@ -2,6 +2,11 @@
 #include <Adafruit_GFX.h>     //экранчик
 #include <Adafruit_PCD8544.h> //экранчик
 
+const int ticketACTION = 0;
+int ticket = 0;//переменная для вывода данных через заданное количество действий
+
+bool debug = true; //для дебага
+
 long* data;                   //данные чтения
 int posData = 0;              //позиция нынешней записи в массив data
 long srd = 0;                 //значение среднего
@@ -41,7 +46,7 @@ const static unsigned char PROGMEM logoBmp[] =
 // pin 5 - Data/Command select (D/C)
 // pin 6 - LCD chip select (CS)
 // pin 7 - LCD reset (RST)
-Adafruit_PCD8544 display = Adafruit_PCD8544(3, 4, 5, 6, 7); //дисплей от Nokia5110
+Adafruit_PCD8544 lcd = Adafruit_PCD8544(3, 4, 5, 6, 7); //дисплей от Nokia5110
 
 Servo s;  //бинарная серва-тест
 Servo s2; //интерполяционная серва-тест
@@ -61,13 +66,13 @@ void setup() {
 
 void initialization() { //инициализация данных
   //дисплей
-  display.begin();              // Инициализация дисплея
-  display.setContrast(60);      // Устанавливаем контраст
-  display.setTextColor(BLACK);  // Устанавливаем цвет текста
-  display.setTextSize(1);       // Устанавливаем размер текста
-  display.clearDisplay();       // Очищаем дисплей
-  display.display();
-  delay(1000); 
+  lcd.begin();              // Инициализация дисплея
+  lcd.setContrast(60);      // Устанавливаем контраст
+  lcd.setTextColor(BLACK);  // Устанавливаем цвет текста
+  lcd.setTextSize(1);       // Устанавливаем размер текста
+  lcd.clearDisplay();       // Очищаем дисплей
+  lcd.display();
+  delay(1000);
   //сервы
   s.attach(SERVO_1);    //бинарная серва
   s2.attach(SERVO_2);   //интерполяционная серва
@@ -78,9 +83,16 @@ void initialization() { //инициализация данных
 }
 
 void loop() {
+  ticket++;     //счётчик тиков
+
   readValue();  //считывает значение и заносит параметр
   actionServ(); //совершение действия для серв
   draw();       //отрисовка
+
+  if (ticket >= ticketACTION) //обнуление тикетов на событии
+  {
+    ticket = 0;
+  }
 }
 
 ///========================================================///
@@ -89,11 +101,16 @@ void loop() {
 
 void readValue() {
   *(data + posData) = analogRead(PINREAD);  //запись значения в массив
+  if(debug) {
+    Serial.print("A5 value = ");
+    Serial.println(analogRead(PINREAD));
+    delay(1000);
+  }
   if (++posData >= window)                  //перевод указателя в начало после конца заполнения массива
   {
     posData = 0;
   }
-  *(drawGraphLCD + posDaraDrawGraphLCD) = getSrd(); //вычисление значения среднего и занесение в массив
+  *(drawGraphLCD + posDaraDrawGraphLCD) = getSrd();//вычисление значения среднего и занесение в массив
   if (++posDaraDrawGraphLCD >= sizeLCD)             //перевод указателя в начало после конца заполнения массива
   {
     posDaraDrawGraphLCD = 0;
@@ -115,9 +132,24 @@ long getSrd() { //вычисление среднего по окну
   srd = 0;
   for (int i = 0; i < window; i++)
   {
+    /*if (debug)
+    {
+      Serial.print(srd);
+      Serial.print(" + ");
+      Serial.print(*(data + i));
+      Serial.print(" = ");
+    }*/
     srd += *(data + i);
+    //if (debug)Serial.println(srd);
   }
   srd /= window;
+  
+  /*if (debug)
+  {
+    Serial.print("=============================================================================");
+    Serial.print(srd);
+    delay(1000);
+  }*/
   return srd;
 }
 
@@ -159,163 +191,39 @@ void actionServ() { //действие сервы
 ///================= Отрисовка графиков ===================///
 ///========================================================///
 
-int ticket = 0;//переменная для вывода данных через заданное количество действий
 void draw() { //метод для отрисовки
-  if (++ticket == 25)
+  if (ticket >= ticketACTION)
   {
     //методы на отрисовку графиков
-    //drawGame(); //метод на работу с Unity
     drawGraph();  //метод на работу с SerialPorts
+    //drawGame(); //метод на работу с Unity
     //drawMyGraph();  //отрисовка "моего графика"
 
-    ticket = 0;
+    //drawLCD();    //метод на отрисовку через LCD
   }
-  drawLCD();
 }
 
+int firstY = 0;
 void drawLCD() {
-  display.drawBitmap(LCDWIDTH/2-8, LCDHEIGHT/2-8, logoBmp, 24, 16, BLACK); // x, y, logo, w, h, color 
-  display.display();
-  delay(2000);
-  
-    // Очищаем дисплей
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-  
-  // Рисуем несколько пикселей (точек)
-  display.drawPixel(0, 0, BLACK);  
-  display.drawPixel(1, 1, BLACK);  
-  display.drawPixel(2, 2, WHITE); // Посередине белый пиксель  
-  display.drawPixel(3, 3, BLACK);  
-  display.drawPixel(4, 4, BLACK);  
-  display.display();
-  delay(2000);
+  lcd.clearDisplay();
+  for (int i = 0; i < sizeLCD; i++)
+  {
+    //long* drawGraphLCD данные о последних средних
+    //posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
+    int y = map(*(drawGraphLCD + i), 0, 1023, 0, LCDHEIGHT);
 
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем диагональ
-  display.drawLine(0, LCDHEIGHT-1, LCDWIDTH, 0, BLACK); // x0, y0, x1, y1, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Для рисования вертикальных и горизонтальных линий лучше использовать
-  // более быстрые функции
-  display.drawFastVLine(LCDWIDTH/2, 0, LCDHEIGHT, BLACK); // x, y, h, color
-  display.drawFastHLine(0, LCDHEIGHT/2, LCDWIDTH, BLACK); //x, y, w, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем прямоугольник
-  display.drawRect(LCDWIDTH/4, LCDHEIGHT/4, LCDWIDTH/2, LCDHEIGHT/2, BLACK); // x, y, w, h, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем закрашенный прямоугольник
-  display.fillRect(LCDWIDTH/4, LCDHEIGHT/4, LCDWIDTH/2, LCDHEIGHT/2, BLACK); // x, y, w, h, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Закрашиваем весь дисплей
-  display.fillScreen(BLACK);
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем окружность
-  display.drawCircle(LCDWIDTH/2, LCDHEIGHT/2, LCDHEIGHT/2, BLACK); // x, y, r, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем закрашенную окружность
-  display.fillCircle(LCDWIDTH/2, LCDHEIGHT/2, LCDHEIGHT/2, BLACK); // x, y, r, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем треугольник
-  display.drawTriangle(LCDWIDTH/4, LCDHEIGHT/4, 3*LCDWIDTH/4, LCDHEIGHT/4, LCDWIDTH/2, 3*LCDHEIGHT/4, BLACK); // x0, y0, x1, y1, x2, y2, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем закрашенный треугольник
-  display.fillTriangle(LCDWIDTH/4, LCDHEIGHT/4, 3*LCDWIDTH/4, LCDHEIGHT/4, LCDWIDTH/2, 3*LCDHEIGHT/4, BLACK); // x0, y0, x1, y1, x2, y2, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем прямоугольник с закругленными углами
-  display.drawRoundRect(LCDWIDTH/4, LCDHEIGHT/4, LCDWIDTH/2, LCDHEIGHT/2, 10, BLACK); // x, y, w, h, r, color
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем закрашенный прямоугольник с закругленными углами
-  display.fillRoundRect(LCDWIDTH/4, LCDHEIGHT/4, LCDWIDTH/2, LCDHEIGHT/2, 10, BLACK); // x, y, w, h, r, colordisplay.display();
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Рисуем заранее подготовленное лого
-  // Подготовлен массив из 16 пар байтов
-  // каждый байт состоит из 8 битов, соответсвенно
-  // получаем матрицу 16х16 битов, 1-черный цвет, 0-белый цвет
-  display.drawBitmap(LCDWIDTH/2-8, LCDHEIGHT/2-8, logoBmp, 24, 16, BLACK); // x, y, logo, w, h, color 
-  display.display();
-  delay(2000);
-
-  display.clearDisplay();
-  display.display();
-  delay(1000);
-
-  // Выведем текст
-  display.print("Zelectro");
-  delay(3000);
-
-  display.clearDisplay();
-  display.display();
-  delay(5000);
+    if (i != 0 && i != sizeLCD - 1)
+    {
+      lcd.drawLine(i - 1, firstY, i, y, BLACK); // x0, y0, x1, y1, color
+    }
+    else
+    {
+      lcd.drawPixel(i, y, BLACK); //отрисовка крайних сторон
+    }
+    lcd.drawLine(posDaraDrawGraphLCD, 0, posDaraDrawGraphLCD, LCDHEIGHT - 1, BLACK);
+    firstY = y;
+  }
+  lcd.display();
 }
 
 void drawGame() { //метод на работу с Unity
