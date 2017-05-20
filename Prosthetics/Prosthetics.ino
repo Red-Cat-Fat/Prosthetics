@@ -18,18 +18,23 @@ Servo s2;
 
 void setup() {
   Serial.begin(115200);
-  data = new long[window];
-  drawGraphLCD = new long[
-  s.attach(SERVO_1);
-  s2.attach(SERVO_2);
+  data = new long[window];  //выдклил память под массив считываемых значений
+  drawGraphLCD = new long[sizeLCD]; //выдклил память под массив значений среднего считываемых значений
+  
+  s.attach(SERVO_1);  //бинарная серва
+  s2.attach(SERVO_2); //интерполяционная серва
+
+  //обнуляем значения даты
   for (int i = 0; i < window; i++)
   {
     *(data + i) = 0;
   }
+  //обнуляем значение на отрисовку
+  for (int i = 0; i < sizeLCD; i++)
+  {
+    *(drawGraphLCD + i) = 0;
+  }
 }
-
-int tick = 0;
-int a = 0;
 
 void loop() {
   *(data + posData) = analogRead(PINREAD);  //запись значения в массив
@@ -39,15 +44,12 @@ void loop() {
   }
 
   getSrd(); //вычисление значения среднего
-  
   actionServ(); //совершение действия
-
-  //методы на отрисовку графиков
   
-  //drawGame();
-  //outDate();
-  drawGraph();  
-  //drawMyGraph();
+  //методы на отрисовку графиков
+  //drawGame(); //метод на работу с Unity
+  drawGraph();  //метод на работу с SerialPorts
+  //drawMyGraph();  //отрисовка "моего графика"
 }
 
 long getSrd(){  //вычисление среднего по окну
