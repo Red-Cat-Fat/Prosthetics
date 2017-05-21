@@ -13,7 +13,7 @@ long srd = 0;                 //значение среднего
 int* drawGraphLCD;           //данные о последних средних
 int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
 
-const int window = 200; //размер окна
+const int window = LCDWIDTH;// 200; //размер окна
 const int PINREAD = 5;  //аналоговый пин чтения данных
 
 ///========================================================///
@@ -26,6 +26,7 @@ const int PINREAD = 5;  //аналоговый пин чтения данных
 // pin 6 - LCD chip select (CS)
 // pin 7 - LCD reset (RST)
 Adafruit_PCD8544 lcd = Adafruit_PCD8544(3, 4, 5, 6, 7); //дисплей от Nokia5110
+const int PIN_LED = 2; 
 
 Servo s;  //бинарная серва-тест
 Servo s2; //интерполяционная серва-тест
@@ -39,6 +40,10 @@ const int SERVO_2 = 6;  //цифровой пин вывода, действую
 
 void setup() {
   Serial.begin(115200);
+
+  pinMode(PIN_LED, OUTPUT);     //подсветка экрана
+  digitalWrite(PIN_LED, HIGH);  //включить подсветку
+  
   initialization(); //инициализируем переменные
   drawLCD();
 }
@@ -237,6 +242,25 @@ void drawLCD() {
     lcd.drawLine(posDaraDrawGraphLCD, 0, posDaraDrawGraphLCD, LCDHEIGHT - 1, BLACK);
     firstY = y;
   }
+
+  for (int i = 0; i < LCDWIDTH; i++)
+  {
+    //long* drawGraphLCD данные о последних средних
+    //posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
+    int y = LCDHEIGHT - 1 - map(*(data + i), 0, 1023, 0, LCDHEIGHT);
+
+    if (i != 0 && i != LCDWIDTH - 1)
+    {
+      lcd.drawLine(i - 1, firstY, i, y, BLACK); // x0, y0, x1, y1, color
+    }
+    else
+    {
+      lcd.drawPixel(i, y, BLACK); //отрисовка крайних сторон
+    }
+    lcd.drawLine(posDaraDrawGraphLCD, 0, posDaraDrawGraphLCD, LCDHEIGHT - 1, BLACK);
+    firstY = y;
+  }
+  
   lcd.display();
 }
 
