@@ -3,8 +3,6 @@
 long* data;                   //данные чтения
 int posData = 0;              //позиция нынешней записи в массив data
 long srd = 0;                 //значение среднего
-long* drawGraphLCD;           //данные о последних средних
-int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
 
 const int window = 400; //размер окна
 const int sizeLCD = 48; //ширина экранчика
@@ -30,7 +28,6 @@ void initialization() { //инициализация данных
   s2.attach(SERVO_2);   //интерполяционная серва
 
   data = new long[window];          //выдклил память под массив считываемых значений
-  drawGraphLCD = new long[sizeLCD]; //выдклил память под массив значений среднего считываемых значений
 
   zeroArrays(); //обнуление массивов на отрисовку
 }
@@ -51,22 +48,13 @@ void readValue() {
   {
     posData = 0;
   }
-  *(drawGraphLCD + posDaraDrawGraphLCD) = getSrd(); //вычисление значения среднего и занесение в массив
-  if (++posDaraDrawGraphLCD >= sizeLCD)             //перевод указателя в начало после конца заполнения массива
-  {
-    posDaraDrawGraphLCD = 0;
-  }
+  getSrd(); //вычисление значения среднего и занесение в массив
 }
 void zeroArrays() { //обнуление массивов на отриссовку
   //обнуляем значения даты
   for (int i = 0; i < window; i++)
   {
     *(data + i) = 0;
-  }
-  //обнуляем значение на отрисовку
-  for (int i = 0; i < sizeLCD; i++)
-  {
-    *(drawGraphLCD + i) = 0;
   }
 }
 long getSrd() { //вычисление среднего по окну
@@ -120,14 +108,14 @@ void actionServ() { //действие сервы
 int ticket = 0;//переменная для вывода данных через заданное количество действий
 void draw() { //метод для отрисовки
 
-  if (++ticket == 25)
+  //if (++ticket == 25)
   {
     //методы на отрисовку графиков
     //drawGame(); //метод на работу с Unity
     drawGraph();  //метод на работу с SerialPorts
     //drawMyGraph();  //отрисовка "моего графика"
 
-    ticket = 0;
+    //ticket = 0;
   }
 }
 
