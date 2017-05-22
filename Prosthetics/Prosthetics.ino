@@ -20,10 +20,10 @@ int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в 
 //--------------------------------------------------------//
 //---------------------- Константы -----------------------//
 //--------------------------------------------------------//
-const bool debug = false;           //для дебага
-const bool workWithLCD = true;      //отрисовывать на экранчике
-const int window = LCDWIDTH;// 200; //размер окна
-const int PINREAD = 5;              //аналоговый пин чтения данных
+#define debug false             //для дебага
+#define workWithLCD true        //отрисовывать на экранчике
+#define window LCDWIDTH// 200;  //размер окна
+#define PINREAD 5               //аналоговый пин чтения данных
 
 ///========================================================///
 ///================ Подключаемая переферия ================///
@@ -58,7 +58,7 @@ void setup() {
   startSetting();
 
   delay(1000);
-  drawLCD();
+  //drawLCD();
 }
 
 void initialization() { //инициализация данных
@@ -218,46 +218,29 @@ void startSetting() {
   actionStart = 1024;
   actionEnd = 0;
 
-  wait(workWithLCD);    //выход в режим для окна
-  findMin(workWithLCD); //нахождение минимального расслабления руки
-  findMax(workWithLCD); //нахождение максимального напряжения руки
-  
-  *textLCD = "0";
+  reader(workWithLCD, 0);   //выход в режим для окна
+  reader(workWithLCD, 1);   //нахождение минимального расслабления руки
+  reader(workWithLCD, 2);   //нахождение максимального напряжения руки
 }
 
-void wait(bool drawLCD){
-  //заполняем окно
-  *textLCD = "Rasslabtes";
-  for (int i = 0; i < LCDWIDTH; i++)
-  {
+void reader(bool bDrawLCD, byte state) {
+  for (int i = 0; i < LCDWIDTH; i++)  {
     readValue();  //считывает значение и заносит параметр
-    if(drawLCD) 
-      drawLCD();       //отрисовка
-  }
-}
-
-void findMin(bool drawLCD){
-  //считывание расслабленной руки, поиск минимума
-  for (int i = 0; i < LCDWIDTH; i++)
-  {
-    readValue();  //считывает значение и заносит параметр
-    if (getSrd() < actionStart) {
-      actionStart = srd;
+    switch (state) {
+      case 1: { //нахождение минимума
+          if (getSrd() < actionStart) {
+            actionStart = srd;
+          }
+          break;
+        }
+      case 2: {
+          if (getSrd() > actionEnd) {
+            actionEnd = srd;
+          }
+          break;
+        }
     }
-    if(drawLCD) 
-      drawLCD();       //отрисовка
-  }
-}
-
-void findMax(bool drawLCD){
-  *textLCD = "Naprеgite ruku";
-  //считывание напряжённой руки, поиск максимума
-  for (int i = 0; i < LCDWIDTH; i++) {
-    readValue();  //считывает значение и заносит параметр
-    if (getSrd() > actionEnd) {
-      actionEnd = srd;
-    }
-    if(drawLCD) 
+    if (bDrawLCD)
       drawLCD();       //отрисовка
   }
 }
