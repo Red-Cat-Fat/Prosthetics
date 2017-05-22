@@ -23,19 +23,25 @@ int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в 
 #define debug false             //для дебага
 #define workWithLCD true        //отрисовывать на экранчике
 #define window LCDWIDTH// 200;  //размер окна
-#define PINREAD 5               //аналоговый пин чтения данных
 
+//--------------------------------------------------------//
+//------------------------ Пины --------------------------//
+//--------------------------------------------------------//
+#define A_PIN_READ 5              //аналоговый пин чтения данных с фильтра
+#define A_PIN_SETTING_RESTOR 4    //аналоговый пин чтения резистора управления
+
+#define D_PIN_KEY 8               //цифровой пин чтения кнопки
+#define D_PIN_LED 2               //цифровой пин подсветки
 ///========================================================///
 ///================ Подключаемая переферия ================///
 ///========================================================///
-
 // pin 3 - Serial clock out (SCLK)
 // pin 4 - Serial data out (DIN)
 // pin 5 - Data/Command select (D/C)
 // pin 6 - LCD chip select (CS)
 // pin 7 - LCD reset (RST)
 Adafruit_PCD8544 lcd = Adafruit_PCD8544(3, 4, 5, 6, 7); //дисплей от Nokia5110
-const int PIN_LED = 2;
+
 char* textLCD = "This is textLCD";
 
 Servo s;  //бинарная серва-тест
@@ -50,9 +56,10 @@ const int SERVO_2 = 6;  //цифровой пин вывода, действую
 void setup() {
   Serial.begin(115200);
 
-  pinMode(PIN_LED, OUTPUT);     //подсветка экрана
-  digitalWrite(PIN_LED, HIGH);  //включить подсветку
-
+  pinMode(D_PIN_LED, OUTPUT);     //пин подсветки экрана на вывод
+  pinMode(D_PIN_KEY, INPUT);       //пин кнопки включитиь на приём
+  digitalWrite(D_PIN_LED, HIGH);  //включить подсветку, пустив на него сигнал
+  
   initialization(); //инициализируем переменные
 
   startSetting();
@@ -100,10 +107,10 @@ void loop() {
 void readValue() {
   if (debug) {
     Serial.print("A5 value = ");
-    Serial.println(analogRead(PINREAD));
+    Serial.println(analogRead(A_PIN_READ));
     delay(1000);
   }
-  *(data + posData) = analogRead(PINREAD);          //запись значения в массив
+  *(data + posData) = analogRead(A_PIN_READ);          //запись значения в массив
   if (++posData >= window) {                        //перевод указателя в начало после конца заполнения массива
     posData = 0;
   }
@@ -211,7 +218,7 @@ void actionServ() { //действие сервы
   interpolationAct(s2);
 }
 ///========================================================///
-///============== Алгоритм работы протеза =================///
+///================= Настройки протеза ====================///
 ///========================================================///
 
 void startSetting() {
@@ -243,6 +250,13 @@ void reader(bool bDrawLCD, byte state) {
     if (bDrawLCD)
       drawLCD();       //отрисовка
   }
+}
+
+void readValueSettingResistor()
+{
+  /*val = digitalRead(D_PIN_KEY);
+  if(
+  int analogRead(A_PIN_SETTING_RESTOR);*/
 }
 
 ///========================================================///
@@ -312,7 +326,7 @@ void drawGame() { //метод на работу с Unity
 }
 void drawGraph() { //метод на работу с SerialPorts
   Serial.println("$");
-  Serial.println(analogRead(PINREAD));
+  Serial.println(analogRead(A_PIN_READ));
   Serial.println(" ");
   Serial.println(getSrd());
   Serial.println(" ");
@@ -320,7 +334,7 @@ void drawGraph() { //метод на работу с SerialPorts
   Serial.println(";");
 }
 void drawMyGraph() { //отрисовка "моего графика"
-  Serial.print(analogRead(PINREAD));
+  Serial.print(analogRead(A_PIN_READ));
   Serial.print(" ");
   Serial.print(getSrd());
   Serial.print(" ");
