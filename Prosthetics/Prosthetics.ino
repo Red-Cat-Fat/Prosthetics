@@ -276,45 +276,33 @@ void draw() { //метод для отрисовки
 
 int firstY = 0;
 
+void drawGraph(int* graph){
+  for (int i = 0; i < LCDWIDTH; i++)
+  {
+    //long* drawGraphLCD данные о последних средних
+    //posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
+    int y = LCDHEIGHT - 1 - map(*(graph + i), 0, 1023, 0, LCDHEIGHT);
+
+    if (i != 0 && i != LCDWIDTH - 1)
+    {
+      lcd.drawLine(i - 1, firstY, i, y, BLACK); // x0, y0, x1, y1, color
+    }
+    else
+    {
+      lcd.drawPixel(i, y, BLACK); //отрисовка крайних сторон
+    }
+    firstY = y;
+  }
+}
+
 void drawLCD() {
   lcd.clearDisplay();
   lcd.println(textLCD);
-  for (int i = 0; i < LCDWIDTH; i++)
-  {
-    //long* drawGraphLCD данные о последних средних
-    //posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
-    int y = LCDHEIGHT - 1 - map(*(drawGraphLCD + i), 0, 1023, 0, LCDHEIGHT);
+  lcd.drawLine(posDaraDrawGraphLCD, 0, posDaraDrawGraphLCD, LCDHEIGHT - 1, BLACK);
 
-    if (i != 0 && i != LCDWIDTH - 1)
-    {
-      lcd.drawLine(i - 1, firstY, i, y, BLACK); // x0, y0, x1, y1, color
-    }
-    else
-    {
-      lcd.drawPixel(i, y, BLACK); //отрисовка крайних сторон
-    }
-    lcd.drawLine(posDaraDrawGraphLCD, 0, posDaraDrawGraphLCD, LCDHEIGHT - 1, BLACK);
-    firstY = y;
-  }
-
-  for (int i = 0; i < LCDWIDTH; i++)
-  {
-    //long* drawGraphLCD данные о последних средних
-    //posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
-    int y = LCDHEIGHT - 1 - map(*(data + i), 0, 1023, 0, LCDHEIGHT);
-
-    if (i != 0 && i != LCDWIDTH - 1)
-    {
-      lcd.drawLine(i - 1, firstY, i, y, BLACK); // x0, y0, x1, y1, color
-    }
-    else
-    {
-      lcd.drawPixel(i, y, BLACK); //отрисовка крайних сторон
-    }
-    lcd.drawLine(posDaraDrawGraphLCD, 0, posDaraDrawGraphLCD, LCDHEIGHT - 1, BLACK);
-    firstY = y;
-  }
-
+  drawGraph(data);
+  drawGraph(drawGraphLCD);
+  
   lcd.display();
 }
 
