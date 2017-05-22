@@ -58,11 +58,12 @@ void setup() {
 
   pinMode(D_PIN_LED, OUTPUT);     //пин подсветки экрана на вывод
   pinMode(D_PIN_KEY, INPUT);       //пин кнопки включитиь на приём
+  
   digitalWrite(D_PIN_LED, HIGH);  //включить подсветку, пустив на него сигнал
   
   initialization(); //инициализируем переменные
 
-  startSetting();
+  //startSetting();
 
   delay(1000);
   //drawLCD();
@@ -87,6 +88,7 @@ void initialization() { //инициализация данных
 }
 
 void loop() {
+  //readValueSettingResistor();
   ticket++;     //счётчик тиков
 
   debuger();
@@ -131,60 +133,6 @@ void zeroArrays() { //обнуление массивов на отриссов�
   }
 }
 long getSrd() { //вычисление среднего по окну
-  srd = 0;
-  if (debug) {
-    Serial.println("=============================================================================");
-    Serial.println("============================    Data array start   ==========================");
-    Serial.println("=============================================================================");
-
-    for (int z = 0; z < window; z++)    {
-      Serial.print("data[");
-      Serial.print(z);
-      Serial.print("] = ");
-      Serial.println(*(data + z));
-    }
-
-    Serial.println("=============================================================================");
-    Serial.println("============================    Data array end   ============================");
-    Serial.println("=============================================================================");
-  }
-  for (int i = 0; i < window; i++)  {
-    if (debug) {
-      Serial.print(srd);
-      Serial.print(" + ");
-      Serial.print(*(data + i));
-      Serial.print(" = ");
-    }
-    srd += *(data + i);
-    if (debug) {
-      Serial.println(srd);
-    }
-  }
-  srd /= window;
-
-  if (debug)  {
-    Serial.println("=============================================================================");
-    Serial.println(srd);
-    delay(1000);
-  }
-  return srd;
-}
-
-void debuger() {
-  while (true)
-  {
-    while (Serial.available() > 0)
-    {
-      char pin = Serial.read();
-      if (pin > 1 && pin < 10) {
-        Serial.print("=============================================================================");
-        Serial.println(pin);
-        Serial.print("=============================================================================");
-      }
-    }
-    break;
-  }
-}
 
 ///========================================================///
 ///================ Алгоритм работы серв ==================///
@@ -254,9 +202,16 @@ void reader(bool bDrawLCD, byte state) {
 
 void readValueSettingResistor()
 {
-  /*val = digitalRead(D_PIN_KEY);
-  if(
-  int analogRead(A_PIN_SETTING_RESTOR);*/
+  bool keyDown = digitalRead(D_PIN_KEY);
+  if (keyDown == HIGH)
+  {
+    digitalWrite(D_PIN_LED, LOW); 
+    //int a = analogRead(A_PIN_SETTING_RESTOR);
+  }
+  else
+  {
+    digitalWrite(D_PIN_LED, HIGH); 
+  }
 }
 
 ///========================================================///
