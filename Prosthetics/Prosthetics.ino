@@ -21,8 +21,8 @@ int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в 
 //---------------------- Константы -----------------------//
 //--------------------------------------------------------//
 #define debug false             //для дебага
-#define workWithLCD true        //отрисовывать на экранчике
-#define window LCDWIDTH// 200;  //размер окна
+#define workWithLCD false       //отрисовывать на экранчике NOKIA 5110
+#define window LCDWIDTH//сейчас 128, но можно увеличить до 200;  //размер окна
 
 //--------------------------------------------------------//
 //------------------------ Пины --------------------------//
@@ -228,55 +228,40 @@ void actionServ() { //действие сервы
 ///========================================================///
 ///================= Настройки протеза ====================///
 ///========================================================///
+bool debugLed = false;
 
-void onLED(byte nomber) { //включение светодиодов
-  switch (nomber)
-  {
-    case 0: //выключить все
-      {
-        digitalWrite(D_PIN_GREEN_LED, LOW);
-        digitalWrite(D_PIN_YELLOW_LED, LOW);
-        digitalWrite(D_PIN_RED_LED, LOW);
-        break;
-      }
-    case 1: //зелёный
-      {
-        digitalWrite(D_PIN_GREEN_LED, LOW);
-        digitalWrite(D_PIN_YELLOW_LED, LOW);
-        digitalWrite(D_PIN_RED_LED, HIGH);
-        break;
-      }
-    case 2: //жёлтый
-      {
-        digitalWrite(D_PIN_GREEN_LED, LOW);
-        digitalWrite(D_PIN_YELLOW_LED, HIGH);
-        digitalWrite(D_PIN_RED_LED, LOW);
-        break;
-      }
-    case 3: //зелёный
-      {
-        digitalWrite(D_PIN_GREEN_LED, HIGH);
-        digitalWrite(D_PIN_YELLOW_LED, LOW);
-        digitalWrite(D_PIN_RED_LED, LOW);
-        break;
-      }
-  }
-}
+const int iDelay = 500;//задержка в милисекундах при переходе из режима в режим
 
 void startSetting() {
   actionStart = 1024;
   actionEnd = 0;
 
-  onLED(0);               //включаем красный светодиод
-  reader(workWithLCD, 0); //вход в режим
-  reader(workWithLCD, 1); //чтение минимума
-  onLED(1);               //включаем жёлтый светодиод
-  reader(workWithLCD, 2); //чтение максимума
-  onLED(2);               //включаем зелёный, устройство готово к работе
+  if(debugLed) Serial.println("Входим в режим");
+  ledControl(RED, ONLY);      //включаем красный светодиод
+  reader(workWithLCD, 0);     //вход в режим
+  ledControl(RED, BLINK);     //моргнули и оставили красный
+  if(debugLed) Serial.println("Секунда старт");
+  delay(1000);
+  if(debugLed) Serial.println("Секунда енд");
+  
+  if(debugLed) Serial.println("Начали чтение минимума");
+  reader(workWithLCD, 1);     //чтение минимума
+  ledControl(YELLOW, ONLY);
+  ledControl(YELLOW, BLINK);  //включаем жёлтый светодиод - конец чтения минимума
+  if(debugLed) Serial.println("Секунда старт");
+  delay(1000);
+  if(debugLed) Serial.println("Секунда енд");
+  
+  if(debugLed) Serial.println("Начали чтение Максимума");
+  reader(workWithLCD, 2);     //чтение максимума
+  ledControl(YELLOW, REMOVE);
+  onLed(GREEN, ONLY);         //включаем зелёный, устройство готово к работе
+  if(debugLed) Serial.println("Готово!");
+  delay(1000);
 }
 
-void reader(bool bDrawLCD, byte state) {
-  for (int i = 0; i < LCDWIDTH; i++)  {
+void reader(bool bDrawLCD, byte state) {//метод считывания данных по окну
+  for (int i = 0; i < LCDWIDTH*LCDWIDTH; i++)  {
     readValue();  //считывает значение и заносит параметр
     switch (state) {
       case 1: { //нахождение минимума
@@ -304,8 +289,9 @@ void readValueSettingResistor()
     int analogRead(A_PIN_SETTING_RESTOR);*/
 }
 
+
 ///========================================================///
-///================= Отрисовка графиков ===================///
+///====================== Индикация =======================///
 ///========================================================///
 void draw() { //метод для отрисовки
   if (ticket >= ticketACTION)
@@ -319,6 +305,90 @@ void draw() { //метод для отрисовки
   }
 }
 
+//--------------------------------------------------------//
+//------------- Режимы свечения светодиодов --------------//
+//--------------------------------------------------------//
+#define ADD 0    //включить, не выключая остальные
+#define REMOVE 1 //выключить, оставив остальные
+#define ONLY 2   //включить, выключив остальные
+#define BLINK 3  //моргать
+#define ALL_ON 4 //включить все
+#define ALL_OFF 5//выключить все
+
+//--------------------------------------------------------//
+//---------------------- Светодиоды ----------------------//
+//--------------------------------------------------------//
+#define ALL 0         //все
+#define RED 1         //красный
+#define YELLOW 2      //жёлтый
+#define GREEN 3       //зелёный
+
+void onLed(byte nomber, bool state) { //включение светодиодов
+  switch (nomber)
+  {
+    case 0: //выключить все
+      {
+        digitalWrite(D_PIN_GREEN_LED, state);
+        digitalWrite(D_PIN_YELLOW_LED, state);
+        digitalWrite(D_PIN_RED_LED, state);
+        break;
+      }
+    case 1: //зелёный
+      {
+        digitalWrite(D_PIN_RED_LED, state);
+        break;
+      }
+    case 2: //жёлтый
+      {
+        digitalWrite(D_PIN_YELLOW_LED, state);
+        break;
+      }
+    case 3: //зелёный
+      {
+        digitalWrite(D_PIN_GREEN_LED, state);
+        break;
+      }
+  }
+}
+
+void ledControl(byte led, byte mode) {
+  switch (mode)
+  {
+    case ADD: { //включить, не выключая остальные
+        onLed(led, HIGH);
+        break;
+      }
+    case REMOVE: {  //выключить, оставив остальные
+        onLed(led, LOW);
+        break;
+      }
+    case ONLY: { //включить, выключив остальные
+        onLed(ALL, LOW);
+        onLed(led, HIGH);
+        break;
+      }
+    case BLINK: { //моргать
+        onLed(led, HIGH);
+        delay(iDelay);
+        onLed(led, LOW);
+        delay(iDelay);
+        onLed(led, HIGH);
+        break;
+      }
+    case ALL_ON: { //включить все
+        onLed(ALL, HIGH);
+        break;
+      }
+    case ALL_OFF: { //выключить все
+        onLed(ALL, LOW);
+        break;
+      }
+  }
+}
+
+//--------------------------------------------------------//
+//------------------ Экран от NOKIA5110 ------------------//
+//--------------------------------------------------------//
 int firstY = 0;
 
 void drawGraph(int* graph) {
@@ -351,6 +421,9 @@ void drawLCD() {
   lcd.display();
 }
 
+//--------------------------------------------------------//
+//------------------ Взаимодействие с PC -----------------//
+//--------------------------------------------------------//
 void drawGame() { //метод на работу с Unity
   Serial.println("$");
   //Serial.println(getSrd());
