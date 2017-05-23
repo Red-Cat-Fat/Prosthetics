@@ -30,6 +30,9 @@ int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в 
 #define A_PIN_READ 5              //аналоговый пин чтения данных с фильтра
 #define A_PIN_SETTING_RESTOR 4    //аналоговый пин чтения резистора управления
 
+#define D_PIN_GREEN_LED 13        //цифровой пин для зелёного светодиода
+#define D_PIN_YELLOW_LED 12       //цифровой пин для жёлтого светодиода
+#define D_PIN_RED_LED 11          //цифровой пин для красного светодиода
 #define D_PIN_KEY 8               //цифровой пин чтения кнопки
 #define D_PIN_LED 2               //цифровой пин подсветки
 ///========================================================///
@@ -56,10 +59,15 @@ const int SERVO_2 = 6;  //цифровой пин вывода, действую
 void setup() {
   Serial.begin(115200);
 
-  pinMode(D_PIN_LED, OUTPUT);     //пин подсветки экрана на вывод
-  pinMode(D_PIN_KEY, INPUT);       //пин кнопки включитиь на приём
-  digitalWrite(D_PIN_LED, HIGH);  //включить подсветку, пустив на него сигнал
-  
+  pinMode(D_PIN_GREEN_LED, OUTPUT);       //цифровой пин для зелёного светодиода на вывод
+  pinMode(D_PIN_YELLOW_LED, OUTPUT);      //цифровой пин для жёлтого светодиода на вывод
+  pinMode(D_PIN_RED_LED, OUTPUT);         //цифровой пин для красного светодиода на вывод
+
+  pinMode(D_PIN_LED, OUTPUT);       //пин подсветки экрана на вывод
+  pinMode(D_PIN_KEY, INPUT);        //пин кнопки включитиь на приём
+
+  digitalWrite(D_PIN_LED, HIGH);    //включить подсветку, пустив на него сигнал
+
   initialization(); //инициализируем переменные
 
   startSetting();
@@ -221,13 +229,50 @@ void actionServ() { //действие сервы
 ///================= Настройки протеза ====================///
 ///========================================================///
 
+void onLED(byte nomber) { //включение светодиодов
+  switch (nomber)
+  {
+    case 0: //выключить все
+      {
+        digitalWrite(D_PIN_GREEN_LED, LOW);
+        digitalWrite(D_PIN_YELLOW_LED, LOW);
+        digitalWrite(D_PIN_RED_LED, LOW);
+        break;
+      }
+    case 1: //зелёный
+      {
+        digitalWrite(D_PIN_GREEN_LED, LOW);
+        digitalWrite(D_PIN_YELLOW_LED, LOW);
+        digitalWrite(D_PIN_RED_LED, HIGH);
+        break;
+      }
+    case 2: //жёлтый
+      {
+        digitalWrite(D_PIN_GREEN_LED, LOW);
+        digitalWrite(D_PIN_YELLOW_LED, HIGH);
+        digitalWrite(D_PIN_RED_LED, LOW);
+        break;
+      }
+    case 3: //зелёный
+      {
+        digitalWrite(D_PIN_GREEN_LED, HIGH);
+        digitalWrite(D_PIN_YELLOW_LED, LOW);
+        digitalWrite(D_PIN_RED_LED, LOW);
+        break;
+      }
+  }
+}
+
 void startSetting() {
   actionStart = 1024;
   actionEnd = 0;
 
-  reader(workWithLCD, 0);   //выход в режим для окна
-  reader(workWithLCD, 1);   //нахождение минимального расслабления руки
-  reader(workWithLCD, 2);   //нахождение максимального напряжения руки
+  onLED(0);               //включаем красный светодиод
+  reader(workWithLCD, 0); //вход в режим
+  reader(workWithLCD, 1); //чтение минимума
+  onLED(1);               //включаем жёлтый светодиод
+  reader(workWithLCD, 2); //чтение максимума
+  onLED(2);               //включаем зелёный, устройство готово к работе
 }
 
 void reader(bool bDrawLCD, byte state) {
@@ -255,8 +300,8 @@ void reader(bool bDrawLCD, byte state) {
 void readValueSettingResistor()
 {
   /*val = digitalRead(D_PIN_KEY);
-  if(
-  int analogRead(A_PIN_SETTING_RESTOR);*/
+    if(
+    int analogRead(A_PIN_SETTING_RESTOR);*/
 }
 
 ///========================================================///
@@ -276,7 +321,7 @@ void draw() { //метод для отрисовки
 
 int firstY = 0;
 
-void drawGraph(int* graph){
+void drawGraph(int* graph) {
   for (int i = 0; i < LCDWIDTH; i++)
   {
     //long* drawGraphLCD данные о последних средних
@@ -302,7 +347,7 @@ void drawLCD() {
 
   drawGraph(data);
   drawGraph(drawGraphLCD);
-  
+
   lcd.display();
 }
 
