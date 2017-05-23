@@ -258,32 +258,42 @@ void startSetting() {
   actionStart = 1024;
   actionEnd = 0;
 
-  if(debugAlg) Serial.println("Входим в режим");
+  if (debugAlg) Serial.println("Входим в режим");
   ledControl(RED, ONLY);      //включаем красный светодиод
-  reader(workWithLCD, 0);     //вход в режим
+  reader(0);     //вход в режим
   ledControl(RED, BLINK);     //моргнули и оставили красный
-  if(debugAlg) Serial.println("Секунда старт");
+  if (debugAlg) Serial.println("Секунда старт");
   delay(1000);
-  if(debugAlg) Serial.println("Секунда енд");
-  
-  if(debugAlg) Serial.println("Начали чтение минимума");
-  reader(workWithLCD, 1);     //чтение минимума
+  if (debugAlg) Serial.println("Секунда енд");
+
+  if (debugAlg) Serial.println("Начали чтение минимума");
+  reader(1);     //чтение минимума
   ledControl(YELLOW, ONLY);
   ledControl(YELLOW, BLINK);  //включаем жёлтый светодиод - конец чтения минимума
-  if(debugAlg) Serial.println("Секунда старт");
+  if (debugAlg) Serial.println("Секунда старт");
   delay(1000);
-  if(debugAlg) Serial.println("Секунда енд");
-  
-  if(debugAlg) Serial.println("Начали чтение Максимума");
-  reader(workWithLCD, 2);     //чтение максимума
+  if (debugAlg) Serial.println("Секунда енд");
+
+  if (debugAlg) Serial.println("Начали чтение Максимума");
+  reader(2);     //чтение максимума
   ledControl(YELLOW, REMOVE);
   onLed(GREEN, ONLY);         //включаем зелёный, устройство готово к работе
-  if(debugAlg) Serial.println("Готово!");
+  if (debugAlg) Serial.println("Готово!");
   delay(1000);
 }
 
-void reader(bool bDrawLCD, byte state) {//метод считывания данных по окну
-  for (int i = 0; i < LCDWIDTH*LCDWIDTH; i++)  {
+int cof = 3;
+
+void reader(byte state) {//метод считывания данных по окну
+  if (workWithLCD) {
+    drawLCD();       //отрисовка
+    cof = 3;
+  }
+  else
+  {
+    cof = LCDWIDTH;
+  }
+  for (int i = 0; i < LCDWIDTH * cof; i++)  {
     readValue();  //считывает значение и заносит параметр
     switch (state) {
       case 1: { //нахождение минимума
@@ -299,8 +309,9 @@ void reader(bool bDrawLCD, byte state) {//метод считывания дан
           break;
         }
     }
-    if (bDrawLCD)
+    if (workWithLCD) {
       drawLCD();       //отрисовка
+    }
   }
 }
 
@@ -325,8 +336,9 @@ void draw() { //метод для отрисовки
     //drawMyGraph();  //отрисовка "моего графика"
     ledControl(YELLOW, REMOVE);
 
-    drawLCD();    //метод на отрисовку через LCD
   }
+  if(workWithLCD)
+    drawLCD();    //метод на отрисовку через LCD
 }
 
 void onLed(byte nomber, bool state) { //включение светодиодов
