@@ -1,0 +1,1 @@
+C:\Arduino\Prosthetics\Reader\Reader\bin\Debug\Reader.exe.config
