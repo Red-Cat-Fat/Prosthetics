@@ -33,9 +33,9 @@ int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в 
 #define A_PIN_READ 5              //аналоговый пин чтения данных с фильтра
 #define A_PIN_SETTING_RESTOR 4    //аналоговый пин чтения резистора управления
 
-#define D_PIN_GREEN_LED 13        //цифровой пин для зелёного светодиода
+#define D_PIN_GREEN_LED 11        //цифровой пин для зелёного светодиода
 #define D_PIN_YELLOW_LED 12       //цифровой пин для жёлтого светодиода
-#define D_PIN_RED_LED 11          //цифровой пин для красного светодиода
+#define D_PIN_RED_LED 13          //цифровой пин для красного светодиода
 #define D_PIN_KEY 8               //цифровой пин чтения кнопки
 #define D_PIN_LED 2               //цифровой пин подсветки
 
@@ -68,7 +68,7 @@ int posDaraDrawGraphLCD = 0;  //позиция нынешней записи в 
 // pin 7 - LCD reset (RST)
 Adafruit_PCD8544 lcd = Adafruit_PCD8544(3, 4, 5, 6, 7); //дисплей от Nokia5110
 
-char* textLCD = "This is textLCD";
+char* textLCD = " ";
 
 Servo s;  //бинарная серва-тест
 Servo s2; //интерполяционная серва-тест
@@ -414,7 +414,7 @@ void drawGraph(int* graph) {
   {
     //long* drawGraphLCD данные о последних средних
     //posDaraDrawGraphLCD = 0;  //позиция нынешней записи в массив drawGraphLCD
-    int y = LCDHEIGHT - 1 - map(*(graph + i), 0, 1023, 0, LCDHEIGHT);
+    int y = LCDHEIGHT - 1 - map(*(graph + i), 0, actionEnd+15/*1023*/, 0, LCDHEIGHT);
 
     if (i != 0 && i != LCDWIDTH - 1)
     {
