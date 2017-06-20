@@ -1,1 +1,9 @@
 C:\Arduino\Prosthetics\Reader\Reader\bin\Debug\Reader.exe.config
+C:\Arduino\Prosthetics\Reader\Reader\bin\Debug\Reader.exe
+C:\Arduino\Prosthetics\Reader\Reader\bin\Debug\Reader.pdb
+C:\Arduino\Prosthetics\Reader\Reader\obj\Debug\Reader.csprojResolveAssemblyReference.cache
+C:\Arduino\Prosthetics\Reader\Reader\obj\Debug\Reader.Form1.resources
+C:\Arduino\Prosthetics\Reader\Reader\obj\Debug\Reader.Properties.Resources.resources
+C:\Arduino\Prosthetics\Reader\Reader\obj\Debug\Reader.csproj.GenerateResource.Cache
+C:\Arduino\Prosthetics\Reader\Reader\obj\Debug\Reader.exe
+C:\Arduino\Prosthetics\Reader\Reader\obj\Debug\Reader.pdb

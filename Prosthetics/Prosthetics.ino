@@ -5,7 +5,7 @@
 //--------------------------------------------------------//
 //----------------------- Таймер -------------------------//
 //--------------------------------------------------------//
-const int ticketACTION = 25; //шаг срабатывания события
+const int ticketACTION = 1; //шаг срабатывания события
 int ticket = 0;             //переменная для вывода данных через заданное количество действий
 
 //--------------------------------------------------------//
@@ -453,8 +453,8 @@ void drawGraph() { //метод на работу с SerialPorts
   Serial.println(analogRead(A_PIN_READ));
   Serial.println(" ");
   Serial.println(getSrd());
-  Serial.println(" ");
-  Serial.println(ACTION);//map(getSrd(), 0, 1023, 0, 180));
+  //Serial.println(" ");
+  //Serial.println(ACTION);//map(getSrd(), 0, 1023, 0, 180));
   Serial.println(";");
 }
 void drawMyGraph() { //отрисовка "моего графика"
